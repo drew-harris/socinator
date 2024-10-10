@@ -12,6 +12,8 @@ export default $config({
     const dbHost = new sst.Secret("DB_HOST");
     const dbPass = new sst.Secret("DB_PASS");
 
+    const snowflakePassword = new sst.Secret("SNOWFLAKE_PASSWORD");
+
     const dbProvider = new postgresql.Provider("drew-db-provider", {
       host: dbHost.value,
       password: dbPass.value,
@@ -39,8 +41,8 @@ export default $config({
 
     const server = new sst.aws.Function("Server", {
       url: true,
-      handler: "server/index.handler",
-      link: [db],
+      handler: "server/src/index.handler",
+      link: [db, snowflakePassword],
     });
 
     const site = new sst.aws.StaticSite("Site", {
