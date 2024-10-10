@@ -6,7 +6,24 @@ import type { Env } from "./type";
 
 const app = new Hono<Env>();
 
+const TABLE = "GHR_DIRECTACCESS_US.PRODUCTION_US.GREENWICH_ROLE_MAPPING_PROD";
+
 app.use("*", async (c, next) => {
+  const connectionStatus = await new Promise<boolean>((resolve, reject) => {
+    console.log("connecting to snowflake...");
+    if (snowflake.isUp()) {
+      resolve(true);
+    }
+    snowflake.connect((err, connection) => {
+      if (err) {
+        console.error("Snowflake connection error:", err);
+        reject(err);
+      } else {
+        console.log("connected to snowflake");
+        resolve(connection.isUp());
+      }
+    });
+  });
   c.set("snowflake", snowflake);
   await next();
 });
@@ -26,21 +43,25 @@ const snowflake = createConnection({
 });
 
 app.get("/snowflake", async (c) => {
-  const connectionStatus = await new Promise<boolean>((resolve, reject) => {
-    console.log("connecting to snowflake...");
-    snowflake.connect((err, connection) => {
-      if (err) {
-        console.error("Snowflake connection error:", err);
-        reject(err);
-      } else {
-        console.log("connected to snowflake");
-        resolve(connection.isUp());
-      }
+  const result = await new Promise((resolve, reject) => {
+    snowflake.execute({
+      sqlText: `SELECT * FROM ${TABLE} LIMIT 5;`,
+      complete: (err, stmt, rows) => {
+        if (err) {
+          console.error("Snowflake query error:", err);
+          reject(err);
+        } else {
+          console.log("Snowflake query success");
+          resolve(rows);
+        }
+      },
     });
   });
+
   return c.json({
     message: "Hello, world!",
-    snowflakeConnected: connectionStatus,
+    snowflakeConnected: true,
+    rows: result,
   });
 });
 

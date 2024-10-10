@@ -32,7 +32,7 @@ export default $config({
     const db = new postgresql.Database(
       "db",
       {
-        name: "socinator-db",
+        name: $interpolate`socinator_db_${$app.stage}`,
       },
       {
         provider: dbProvider,
