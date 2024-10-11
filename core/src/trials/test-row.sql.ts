@@ -1,8 +1,8 @@
-import { jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const TEST_ROW = pgTable("test-row", {
   id: text("id").primaryKey(),
-  jobId: text("job_id").notNull(),
+  jobId: integer("job_id").notNull(),
   metadata: jsonb("metadata"),
   prediction: text("prediction"),
   actual: text("actual"),

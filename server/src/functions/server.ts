@@ -3,7 +3,7 @@ import { handle } from "hono/aws-lambda";
 import { Resource } from "sst";
 import type { Env } from "../type";
 import { testValue } from "core/index";
-import { snowflake } from "../snowflake";
+import { snowflake } from "core/snowflake";
 
 const app = new Hono<Env>();
 
@@ -27,25 +27,14 @@ app.get("/core", async (c) => {
 });
 
 app.get("/snowflake", async (c) => {
-  const result = await new Promise((resolve, reject) => {
-    snowflake.execute({
-      sqlText: `SELECT * FROM ${TABLE} LIMIT 5;`,
-      complete: (err, stmt, rows) => {
-        if (err) {
-          console.error("Snowflake query error:", err);
-          reject(err);
-        } else {
-          console.log("Snowflake query success");
-          resolve(rows);
-        }
-      },
-    });
+  const rows = await snowflake.query({
+    sqlText: `SELECT * FROM ${TABLE} LIMIT 5;`,
   });
 
   return c.json({
     message: "Hello, world!",
     snowflakeConnected: true,
-    rows: result,
+    rows,
   });
 });
 
