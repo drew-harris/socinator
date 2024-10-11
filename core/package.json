@@ -5,10 +5,18 @@
   "exports": {
     "./*": "./src/*.ts"
   },
+  "scripts": {
+    "db": "sst shell drizzle-kit"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "drizzle-kit": "^0.25.0",
+    "drizzle-orm": "^0.34.1",
+    "postgres": "^3.4.4"
   }
 }

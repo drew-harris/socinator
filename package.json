@@ -7,6 +7,9 @@
     "site",
     "core"
   ],
+  "scripts": {
+    "db:push": "bun run --filter='core' db push"
+  },
   "devDependencies": {
     "@types/aws-lambda": "8.10.145",
     "@types/bun": "latest"

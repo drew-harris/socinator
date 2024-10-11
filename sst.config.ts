@@ -30,7 +30,7 @@ export default $config({
 
     sst.Linkable.wrap(postgresql.Database, (db) => ({
       properties: {
-        dbUrl: $interpolate`postgresql://postgres:${dbProvider.password}@${dbProvider.host}/${db.name}`,
+        dbUrl: $interpolate`postgresql://postgres:${dbProvider.password}@${dbProvider.host}:${5433}/${db.name}`,
       },
     }));
 
