@@ -46,7 +46,7 @@ export default $config({
 
     const server = new sst.aws.Function("Server", {
       url: true,
-      handler: "server/src/index.handler",
+      handler: "server/src/functions/server.handler",
       link: [db, snowflakePassword],
     });
 
