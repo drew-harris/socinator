@@ -3,6 +3,7 @@ import { handle } from "hono/aws-lambda";
 import { Resource } from "sst";
 import { createConnection } from "snowflake-sdk";
 import type { Env } from "./type";
+import { testValue } from "core/index";
 
 const app = new Hono<Env>();
 
@@ -31,6 +32,12 @@ app.use("*", async (c, next) => {
 app.get("/", async (c) => {
   return c.json({
     message: "Hello, there!",
+  });
+});
+
+app.get("/core", async (c) => {
+  return c.json({
+    msg: testValue,
   });
 });
 

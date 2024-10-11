@@ -4,7 +4,8 @@
   "type": "module",
   "workspaces": [
     "server",
-    "site"
+    "site",
+    "core"
   ],
   "devDependencies": {
     "@types/aws-lambda": "8.10.145",
