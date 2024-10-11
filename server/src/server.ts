@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
 import { Resource } from "sst";
-import type { Env } from "../type";
+import type { Env } from "./type";
 import { testValue } from "core/index";
 import { snowflake } from "core/snowflake";
+import { trpcServer } from "@hono/trpc-server";
+import { appRouter } from "./trpc";
 
 const app = new Hono<Env>();
 
@@ -13,6 +15,13 @@ app.use("*", async (c, next) => {
   c.set("snowflake", snowflake);
   await next();
 });
+
+app.use(
+  "/trpc/*",
+  trpcServer({
+    router: appRouter,
+  }),
+);
 
 app.get("/", async (c) => {
   return c.json({

@@ -1,51 +1,27 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
-type ApiResponse = {
-  message: string;
-  snowflakeConnected: boolean;
-  rows: unknown[];
-};
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { trpc } from "./utils/trpc";
+import { httpBatchLink } from "@trpc/client";
+import { Homepage } from "./Homepage";
 
 function App() {
-  const [result, setResult] = useState<ApiResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const response = await fetch(
-        import.meta.env.VITE_PUBLIC_API_URL + "snowflake",
-      );
-      const data = await response.json();
-      setResult(data);
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
-
+  const [queryClient] = useState(() => new QueryClient());
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: import.meta.env.VITE_PUBLIC_API_URL + "trpc",
+        }),
+      ],
+    }),
+  );
   return (
-    <>
-      {loading && <p>Loading...</p>}
-      {result && (
-        <div>
-          <p>Snowflake connected: {result.snowflakeConnected ? "yes" : "no"}</p>
-          <p>Sample Rows:</p>
-          <div>
-            {result.rows.map((row) => (
-              <pre
-                style={{
-                  border: "1px solid white",
-                  padding: "3px",
-                  textAlign: "left",
-                }}
-              >
-                {JSON.stringify(row, null, 2)}
-              </pre>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <Homepage />
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
 
