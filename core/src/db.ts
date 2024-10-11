@@ -51,7 +51,7 @@ export async function createTransaction<T>(
         return TransactionContext.with({ tx, effects }, () => callback(tx));
       },
       {
-        isolationLevel: "repeatable read",
+        isolationLevel: "read committed",
       },
     );
     await Promise.all(effects.map((x) => x()));
