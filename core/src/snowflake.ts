@@ -50,6 +50,10 @@ export class Snowflake {
       });
     });
   }
+
+  get conn() {
+    return this.client;
+  }
 }
 
 export const snowflake = new Snowflake();
