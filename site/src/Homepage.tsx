@@ -6,7 +6,7 @@ export const Homepage = () => {
   return (
     <div>
       <div>Homepage</div>
-      <pre>{JSON.stringify(testQuery.data)}</pre>
+      <pre>{JSON.stringify(testQuery.data, null, 4)}</pre>
     </div>
   );
 };

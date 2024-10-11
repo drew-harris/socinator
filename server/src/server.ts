@@ -20,6 +20,11 @@ app.use(
   "/trpc/*",
   trpcServer({
     router: appRouter,
+    createContext(opts, c) {
+      return {
+        snowflake: c.get("snowflake"),
+      } satisfies Env["Variables"];
+    },
   }),
 );
 
