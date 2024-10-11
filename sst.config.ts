@@ -5,7 +5,12 @@ export default $config({
       name: "socinator",
       removal: input?.stage === "production" ? "retain" : "remove",
       home: "aws",
-      providers: { postgresql: "3.12.1" },
+      providers: {
+        postgresql: "3.12.1",
+        aws: {
+          profile: "socinator",
+        },
+      },
     };
   },
   async run() {
