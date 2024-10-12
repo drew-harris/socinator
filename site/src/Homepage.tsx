@@ -37,6 +37,11 @@ export const Homepage = () => {
         onChange={(e) => setLimit(parseInt(e.target.value))}
       />
       <div className="h-10"></div>
+      {testQuery.isLoading && (
+        <div className="flex justify-center">
+          <div className="animate-spin">Loading...</div>
+        </div>
+      )}
       {testQuery.data && <JobsTable data={testQuery.data} />}
     </div>
   );
