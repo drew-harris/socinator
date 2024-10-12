@@ -1,6 +1,22 @@
-import { Snowflake } from "../snowflake";
+import { z } from "zod";
+import { snowflake } from "../snowflake";
 
 export namespace Jobs {
+  export const Info = z.object({
+    JOB_ID: z.number(),
+    ROLE_PRIMARY: z.string(),
+    JOB_FAMILY: z.string().nullable(),
+    SUB_JOB_FAMILY: z.string().nullable(),
+    CAREER_STREAM: z.string().nullable(),
+    SOC6D: z.string().nullable(),
+    SOC6D_TITLE: z.string().nullable(),
+    SENIORITY: z.string().nullable(),
+    MODIFY_TIMESTAMP: z.date(),
+    ROLE_EXTENDED: z.string().nullable(),
+  });
+
+  export type Info = z.infer<typeof Info>;
+
   export const TABLE =
     "GHR_DIRECTACCESS_US.PRODUCTION_US.GREENWICH_ROLE_MAPPING_PROD";
   const bigQuery = `
@@ -87,7 +103,7 @@ LEFT JOIN
     GHR_DIRECTACCESS_US.PRODUCTION_US.GREENWICH_TITLES_PROD t ON b.JOB_ID = t.JOB_ID;
 `;
 
-  export const getJobDetails = async (snowflake: Snowflake, id: number) => {
+  export const getJobDetails = async (id: number) => {
     const result = await snowflake.query({
       sqlText: bigQuery,
       binds: [id, id],
@@ -95,10 +111,13 @@ LEFT JOIN
     return result;
   };
 
-  export const getSampleJobs = async (snowflake: Snowflake) => {
-    const rows = await snowflake.query({
-      sqlText: `SELECT * FROM ${TABLE} LIMIT 5;`,
-    });
+  export const getSampleJobs = async () => {
+    const rows = await snowflake.validatedQuery(
+      {
+        sqlText: `SELECT * FROM ${TABLE} LIMIT 5;`,
+      },
+      Info,
+    );
     return rows;
   };
 }

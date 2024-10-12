@@ -1,5 +1,6 @@
 import { Connection, createConnection } from "snowflake-sdk";
 import { Resource } from "sst";
+import { z, ZodSchema } from "zod";
 
 const snowClient = createConnection({
   account: "NTHBCVT-TALENTEDGE",
@@ -49,6 +50,14 @@ export class Snowflake {
         },
       });
     });
+  }
+
+  async validatedQuery<R extends ZodSchema>(
+    query: QueryOptions,
+    schema: R,
+  ): Promise<z.infer<R>[]> {
+    const rows = await this.query<R>(query);
+    return rows.map((row) => schema.parse(row));
   }
 
   get conn() {

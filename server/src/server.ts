@@ -20,6 +20,10 @@ app.use(
   "/trpc/*",
   trpcServer({
     router: appRouter,
+    onError: ({ error }) => {
+      console.error(error);
+      throw error;
+    },
   }),
 );
 
