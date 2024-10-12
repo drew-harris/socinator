@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { snowflake } from "../snowflake";
 
-export namespace Jobs {
+export namespace Job {
   export const Info = z.object({
     JOB_ID: z.number(),
-    ROLE_PRIMARY: z.string(),
+    ROLE_PRIMARY: z.string().nullable(),
     JOB_FAMILY: z.string().nullable(),
     SUB_JOB_FAMILY: z.string().nullable(),
     CAREER_STREAM: z.string().nullable(),
@@ -19,7 +19,7 @@ export namespace Jobs {
 
   export const TABLE =
     "GHR_DIRECTACCESS_US.PRODUCTION_US.GREENWICH_ROLE_MAPPING_PROD";
-  const bigQuery = `
+  const definedSocBigQuery = `
 WITH base_data AS (
     SELECT 
         r.JOB_ID,
@@ -64,7 +64,7 @@ WITH base_data AS (
         GHR_DIRECTACCESS_US.PRODUCTION_US.GREENWICH_ROLE_MAPPING_PROD r
     WHERE 
         r.JOB_ID = ?
-    JOIN 
+        AND r.SOC6D IS NOT NULL
         GHR_DIRECTACCESS_US.PRODUCTION_US.GREENWICH_MASTER_PROD m ON r.JOB_ID = m.JOB_ID
 )
 SELECT 
@@ -105,17 +105,17 @@ LEFT JOIN
 
   export const getJobDetails = async (id: number) => {
     const result = await snowflake.query({
-      sqlText: bigQuery,
+      sqlText: definedSocBigQuery,
       binds: [id, id],
     });
     return result;
   };
 
-  export const getSampleJobs = async (offset: number = 0) => {
+  export const getSampleJobs = async (offset: number = 0, limit = 5) => {
     const rows = await snowflake.validatedQuery(
       {
-        sqlText: `SELECT * FROM ${TABLE} LIMIT 5 OFFSET ?`,
-        binds: [offset],
+        sqlText: `SELECT * FROM ${TABLE} WHERE SOC6D IS NOT NULL LIMIT ? OFFSET ?`,
+        binds: [limit, offset],
       },
       Info,
     );
