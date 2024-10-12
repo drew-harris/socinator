@@ -111,10 +111,11 @@ LEFT JOIN
     return result;
   };
 
-  export const getSampleJobs = async () => {
+  export const getSampleJobs = async (offset: number = 0) => {
     const rows = await snowflake.validatedQuery(
       {
-        sqlText: `SELECT * FROM ${TABLE} LIMIT 5;`,
+        sqlText: `SELECT * FROM ${TABLE} LIMIT 5 OFFSET ?`,
+        binds: [offset],
       },
       Info,
     );
