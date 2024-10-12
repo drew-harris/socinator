@@ -1,7 +1,7 @@
 import { trpc } from "./utils/trpc";
 
 export const Homepage = () => {
-  const testQuery = trpc.test.useQuery();
+  const testQuery = trpc.jobs.getSample.useQuery();
 
   return (
     <div>

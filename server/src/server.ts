@@ -5,7 +5,7 @@ import type { Env } from "./type";
 import { testValue } from "core/index";
 import { snowflake } from "core/snowflake";
 import { trpcServer } from "@hono/trpc-server";
-import { appRouter } from "./trpc";
+import { appRouter } from "./routers/app";
 
 const app = new Hono<Env>();
 
@@ -20,11 +20,6 @@ app.use(
   "/trpc/*",
   trpcServer({
     router: appRouter,
-    createContext(_, c) {
-      return {
-        snowflake: c.get("snowflake"),
-      } satisfies Env["Variables"];
-    },
   }),
 );
 
