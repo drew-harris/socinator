@@ -57,6 +57,12 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
       colHelp.accessor("SOC6D_TITLE", {
         header: "Soc Titile",
       }),
+      colHelp.display({
+        header: "Actions",
+        cell() {
+          return <div>actions here</div>;
+        },
+      }),
     ];
   }, []);
 
