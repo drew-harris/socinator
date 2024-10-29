@@ -16,6 +16,10 @@ export default $config({
   async run() {
     const dbHost = new sst.Secret("DB_HOST");
     const dbPass = new sst.Secret("DB_PASS");
+    const redshiftUser = new sst.Secret("REDSHIFT_USER");
+    const redshiftPassword = new sst.Secret("REDSHIFT_PASSWORD");
+    const redshiftHost = new sst.Secret("REDSHIFT_HOST");
+    const redshiftDatabase = new sst.Secret("REDSHIFT_DATABASE");
 
     const snowflakePassword = new sst.Secret("SNOWFLAKE_PASSWORD");
 
