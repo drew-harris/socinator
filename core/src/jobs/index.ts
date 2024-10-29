@@ -20,14 +20,9 @@ export namespace Job {
   export const TABLE = "directaccess_db.production.greenwich_role_mapping";
 
   export const getSampleJobs = async (offset: number = 0, limit = 5) => {
-    const countQuery = await redshift.query(
-      `SELECT COUNT(*) FROM ${TABLE} WHERE soc6d IS NOT NULL`
-    );
-    console.log("Total records:", countQuery[0].count);
-
     const rows = await redshift.validatedQuery(
       `SELECT 
-        job_id::varchar as "JOB_ID",
+        job_id as "JOB_ID",
         COALESCE(role_primary, '') as "ROLE_PRIMARY",
         COALESCE(job_family, '') as "JOB_FAMILY",
         COALESCE(sub_job_family, '') as "SUB_JOB_FAMILY",
@@ -35,7 +30,7 @@ export namespace Job {
         COALESCE(soc6d, '') as "SOC6D",
         COALESCE(soc6d_title, '') as "SOC6D_TITLE",
         COALESCE(seniority, '') as "SENIORITY",
-        COALESCE(modify_timestamp::varchar, '') as "MODIFY_TIMESTAMP",
+        COALESCE(modify_timestamp::text, '') as "MODIFY_TIMESTAMP",
         COALESCE(role_extended, '') as "ROLE_EXTENDED"
       FROM ${TABLE} 
       WHERE soc6d IS NOT NULL 
@@ -44,7 +39,6 @@ export namespace Job {
       [limit, offset]
     );
     
-    console.log("Query results:", rows);
     return rows;
   };
 
