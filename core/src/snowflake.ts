@@ -1,4 +1,4 @@
-import { Connection, createConnection } from "snowflake-sdk";
+import { type Connection, createConnection } from "snowflake-sdk";
 import { Resource } from "sst";
 import { z, ZodSchema } from "zod";
 
