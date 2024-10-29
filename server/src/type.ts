@@ -1,8 +1,7 @@
-import type { Connection } from "snowflake-sdk";
-import type { Snowflake } from "core/snowflake";
+import type { Redshift } from "core/redshift";
 
 export type Env = {
   Variables: {
-    snowflake: Snowflake;
+    redshift: Redshift;
   };
 };

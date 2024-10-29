@@ -13,7 +13,19 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "SNOWFLAKE_PASSWORD": {
+    "REDSHIFT_DATABASE": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "REDSHIFT_HOST": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "REDSHIFT_PASSWORD": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "REDSHIFT_USER": {
       "type": "sst.sst.Secret"
       "value": string
     }

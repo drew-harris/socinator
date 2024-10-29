@@ -21,12 +21,10 @@ export default $config({
     const redshiftHost = new sst.Secret("REDSHIFT_HOST");
     const redshiftDatabase = new sst.Secret("REDSHIFT_DATABASE");
 
-    const snowflakePassword = new sst.Secret("SNOWFLAKE_PASSWORD");
-
     const dbProvider = new postgresql.Provider("drew-db-provider", {
       host: dbHost.value,
       password: dbPass.value,
-      port: 5433, // This is not the default!
+      port: 5433,
       username: "postgres",
       superuser: true,
       sslmode: "disable",
@@ -51,7 +49,7 @@ export default $config({
     const server = new sst.aws.Function("Server", {
       url: true,
       handler: "server/src/server.handler",
-      link: [db, snowflakePassword],
+      link: [db, redshiftUser, redshiftPassword, redshiftHost, redshiftDatabase],
     });
 
     const site = new sst.aws.StaticSite("Site", {
