@@ -3,7 +3,7 @@ import { redshift } from "../redshift";
 
 export namespace Job {
   export const Info = z.object({
-    JOB_ID: z.number().nullable(),
+    JOB_ID: z.coerce.string().transform(val => BigInt(val)).nullable(),
     ROLE_PRIMARY: z.string().nullable(),
     JOB_FAMILY: z.string().nullable(),
     SUB_JOB_FAMILY: z.string().nullable(),
@@ -11,9 +11,9 @@ export namespace Job {
     SOC6D: z.string().nullable(),
     SOC6D_TITLE: z.string().nullable(),
     SENIORITY: z.string().nullable(),
-    MODIFY_TIMESTAMP: z.date().nullable(),
+    MODIFY_TIMESTAMP: z.coerce.date().nullable(),
     ROLE_EXTENDED: z.string().nullable(),
-  });
+  }).partial();
 
   export type Info = z.infer<typeof Info>;
 
@@ -22,16 +22,16 @@ export namespace Job {
   export const getSampleJobs = async (offset: number = 0, limit = 5) => {
     const rows = await redshift.validatedQuery(
       `SELECT 
-        job_id as "JOB_ID",
-        role_primary as "ROLE_PRIMARY",
-        job_family as "JOB_FAMILY",
-        sub_job_family as "SUB_JOB_FAMILY",
-        career_stream as "CAREER_STREAM",
-        soc6d as "SOC6D",
-        soc6d_title as "SOC6D_TITLE",
-        seniority as "SENIORITY",
-        modify_timestamp as "MODIFY_TIMESTAMP",
-        role_extended as "ROLE_EXTENDED"
+        CAST(job_id AS BIGINT) as "JOB_ID",
+        COALESCE(role_primary, '') as "ROLE_PRIMARY",
+        COALESCE(job_family, '') as "JOB_FAMILY",
+        COALESCE(sub_job_family, '') as "SUB_JOB_FAMILY",
+        COALESCE(career_stream, '') as "CAREER_STREAM",
+        COALESCE(soc6d, '') as "SOC6D",
+        COALESCE(soc6d_title, '') as "SOC6D_TITLE",
+        COALESCE(seniority, '') as "SENIORITY",
+        COALESCE(modify_timestamp, CURRENT_TIMESTAMP) as "MODIFY_TIMESTAMP",
+        COALESCE(role_extended, '') as "ROLE_EXTENDED"
       FROM ${TABLE} 
       WHERE soc6d IS NOT NULL 
       LIMIT $1 OFFSET $2`,

@@ -44,7 +44,19 @@ export class Redshift {
     params?: any[]
   ): Promise<z.infer<R>[]> {
     const rows = await this.query(query, params);
-    return rows.map((row) => schema.parse(row));
+    try {
+      return rows.map((row) => {
+        const parsed = schema.safeParse(row);
+        if (!parsed.success) {
+          console.error('Validation error:', parsed.error);
+          throw new Error('Data validation failed');
+        }
+        return parsed.data;
+      });
+    } catch (error) {
+      console.error('Error validating query results:', error);
+      throw error;
+    }
   }
 }
 
