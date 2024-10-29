@@ -52,15 +52,19 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
     return [
       colHelp.accessor("JOB_ID", {
         header: "Job Id",
+        cell: (info) => info.getValue() || "N/A",
       }),
       colHelp.accessor("ROLE_PRIMARY", {
         header: "Role",
+        cell: (info) => info.getValue() || "N/A",
       }),
       colHelp.accessor("SOC6D", {
         header: "SOC Code",
+        cell: (info) => info.getValue() || "N/A",
       }),
       colHelp.accessor("SOC6D_TITLE", {
-        header: "Soc Titile",
+        header: "Soc Title",
+        cell: (info) => info.getValue() || "N/A",
       }),
       colHelp.display({
         header: "Actions",
@@ -70,6 +74,8 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
       }),
     ];
   }, []);
+
+  console.log("Table data:", data);
 
   const table = useReactTable({
     data,
@@ -84,7 +90,7 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
-                <th onClick={h.column.getToggleSortingHandler()} key={h.id}>
+                <th className="text-left p-2" onClick={h.column.getToggleSortingHandler()} key={h.id}>
                   {flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
               ))}
@@ -95,7 +101,7 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
           {table.getRowModel().rows.map((row) => (
             <tr className="border-b border-neutral-600" key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td width={cell.column.columnDef.size} key={cell.id}>
+                <td className="p-2" key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

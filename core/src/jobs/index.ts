@@ -3,16 +3,16 @@ import { redshift } from "../redshift";
 
 export namespace Job {
   export const Info = z.object({
-    JOB_ID: z.coerce.string().transform(val => BigInt(val)).nullable(),
-    ROLE_PRIMARY: z.string().nullable(),
-    JOB_FAMILY: z.string().nullable(),
-    SUB_JOB_FAMILY: z.string().nullable(),
-    CAREER_STREAM: z.string().nullable(),
-    SOC6D: z.string().nullable(),
-    SOC6D_TITLE: z.string().nullable(),
-    SENIORITY: z.string().nullable(),
-    MODIFY_TIMESTAMP: z.coerce.date().nullable(),
-    ROLE_EXTENDED: z.string().nullable(),
+    JOB_ID: z.string(),
+    ROLE_PRIMARY: z.string(),
+    JOB_FAMILY: z.string(),
+    SUB_JOB_FAMILY: z.string(),
+    CAREER_STREAM: z.string(),
+    SOC6D: z.string(),
+    SOC6D_TITLE: z.string(),
+    SENIORITY: z.string(),
+    MODIFY_TIMESTAMP: z.string(),
+    ROLE_EXTENDED: z.string()
   }).partial();
 
   export type Info = z.infer<typeof Info>;
@@ -20,9 +20,14 @@ export namespace Job {
   export const TABLE = "directaccess_db.production.greenwich_role_mapping";
 
   export const getSampleJobs = async (offset: number = 0, limit = 5) => {
+    const countQuery = await redshift.query(
+      `SELECT COUNT(*) FROM ${TABLE} WHERE soc6d IS NOT NULL`
+    );
+    console.log("Total records:", countQuery[0].count);
+
     const rows = await redshift.validatedQuery(
       `SELECT 
-        CAST(job_id AS BIGINT) as "JOB_ID",
+        job_id::varchar as "JOB_ID",
         COALESCE(role_primary, '') as "ROLE_PRIMARY",
         COALESCE(job_family, '') as "JOB_FAMILY",
         COALESCE(sub_job_family, '') as "SUB_JOB_FAMILY",
@@ -30,7 +35,7 @@ export namespace Job {
         COALESCE(soc6d, '') as "SOC6D",
         COALESCE(soc6d_title, '') as "SOC6D_TITLE",
         COALESCE(seniority, '') as "SENIORITY",
-        COALESCE(modify_timestamp, CURRENT_TIMESTAMP) as "MODIFY_TIMESTAMP",
+        COALESCE(modify_timestamp::varchar, '') as "MODIFY_TIMESTAMP",
         COALESCE(role_extended, '') as "ROLE_EXTENDED"
       FROM ${TABLE} 
       WHERE soc6d IS NOT NULL 
@@ -38,6 +43,8 @@ export namespace Job {
       Info,
       [limit, offset]
     );
+    
+    console.log("Query results:", rows);
     return rows;
   };
 
