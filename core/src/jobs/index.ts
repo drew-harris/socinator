@@ -23,7 +23,7 @@ export namespace Job {
     const rows = await redshift.validatedQuery(
       `SELECT 
         job_id as "JOB_ID",
-        COALESCE(role_primary, '') as "ROLE_PRIMARY",
+        COALESCE(role_primary, role_extended, soc6d_title, 'No Role') as "ROLE_PRIMARY",
         COALESCE(job_family, '') as "JOB_FAMILY",
         COALESCE(sub_job_family, '') as "SUB_JOB_FAMILY",
         COALESCE(career_stream, '') as "CAREER_STREAM",

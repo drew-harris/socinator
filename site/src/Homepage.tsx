@@ -56,7 +56,10 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
       }),
       colHelp.accessor("ROLE_PRIMARY", {
         header: "Role",
-        cell: (info) => info.getValue() || "N/A",
+        cell: (info) => {
+          const value = info.getValue();
+          return value && value !== '' ? value : info.row.original.SOC6D_TITLE || 'N/A';
+        },
       }),
       colHelp.accessor("SOC6D", {
         header: "SOC Code",
