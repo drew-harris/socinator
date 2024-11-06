@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { ResultModal } from "./ResultModal";
 
 type Job = RouterOutput["jobs"]["getSample"][0];
 const colHelp = createColumnHelper<Job>();
@@ -58,7 +59,9 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
         header: "Role",
         cell: (info) => {
           const value = info.getValue();
-          return value && value !== '' ? value : info.row.original.SOC6D_TITLE || 'N/A';
+          return value && value !== ""
+            ? value
+            : info.row.original.SOC6D_TITLE || "N/A";
         },
       }),
       colHelp.accessor("SOC6D", {
@@ -71,8 +74,10 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
       }),
       colHelp.display({
         header: "Actions",
-        cell() {
-          return <div>actions here</div>;
+        cell(ctx) {
+          const jobId = ctx.row.original.JOB_ID;
+          if (!jobId) return null;
+          return <ResultModal jobId={jobId} />;
         },
       }),
     ];
@@ -93,7 +98,11 @@ const JobsTable = ({ data }: { data: RouterOutput["jobs"]["getSample"] }) => {
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
-                <th className="text-left p-2" onClick={h.column.getToggleSortingHandler()} key={h.id}>
+                <th
+                  className="text-left p-2"
+                  onClick={h.column.getToggleSortingHandler()}
+                  key={h.id}
+                >
                   {flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
               ))}

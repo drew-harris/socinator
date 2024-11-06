@@ -1,6 +1,7 @@
 // src/llm.ts
-import ollama from "ollama";
-import { SOCGroup, JobData } from "./types";
+import { ollama } from "./ollama";
+import { SOCGroup } from "./types";
+import { JobData } from "core/types";
 
 function assignMajorSOCCode(
   args: { [key: string]: any },
@@ -88,7 +89,7 @@ assign_major_soc_code({
 
   try {
     const response = await ollama.chat({
-      model: "llama3.1:latest",
+      model: "llama3.1:8b",
       messages: messages,
       options: {
         temperature: 0.2,

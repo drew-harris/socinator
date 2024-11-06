@@ -5,7 +5,8 @@
   "workspaces": [
     "server",
     "site",
-    "core"
+    "core",
+    "inference"
   ],
   "scripts": {
     "db:push": "bun run --filter='core' db push"

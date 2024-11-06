@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "core": "workspace:",
+    "ollama": "^0.5.9"
   },
   "devDependencies": {
     "@types/bun": "latest"

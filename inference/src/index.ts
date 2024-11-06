@@ -1,11 +1,10 @@
 // src/index.ts
-import { Hono } from "hono";
-import { getJobData } from "./db";
 import { matchJobToMajorSOCCode } from "./major";
 import { matchJobToMinorSOCCode } from "./minor";
 import { matchJobToBroadSOCCode } from "./broad";
 import { matchJobToDetailedSOCCode } from "./detailed";
-import { SOCGroup, JobData, SOCCodeResult } from "./types";
+import { SOCGroup, SOCCodeResult } from "./types";
+import { Inference, type JobData } from "core/types";
 
 import socData from "./soc_defined.json";
 // Store all SOC groups
@@ -33,7 +32,7 @@ export const validDetailedSOCCodes = detailedSocGroups.map(
 );
 
 // Function to filter out specific fields from job data
-function filterJobData(jobData: JobData): Partial<JobData> {
+function filterJobData(jobData: Partial<JobData>): Partial<JobData> {
   const {
     soc6d,
     soc6d_title,
@@ -62,116 +61,103 @@ function filterJobData(jobData: JobData): Partial<JobData> {
   return filteredData;
 }
 
-app.get("/assign-soc-code/:jobId", async (c) => {
-  const jobId = c.req.param("jobId");
-  try {
-    const jobData: JobData = await getJobData(jobId);
-    if (!jobData) {
-      return c.json({ error: "Job not found" }, 404);
-    }
-    console.log("Job data:", JSON.stringify(jobData, null, 2));
+export const inference: Inference = async ({ metadata, jobId }) => {
+  const jobData = metadata;
+  console.log("Job data:", JSON.stringify(jobData, null, 2));
 
-    // Filter the job data
-    const filteredJobData = filterJobData(jobData);
+  // Filter the job data
+  const filteredJobData = filterJobData(jobData);
 
-    console.log("Filtered Job data:", JSON.stringify(filteredJobData, null, 2));
+  console.log("Filtered Job data:", JSON.stringify(filteredJobData, null, 2));
 
-    const majorSocMatch = await matchJobToMajorSOCCode(
+  const majorSocMatch = await matchJobToMajorSOCCode(
+    filteredJobData,
+    majorSocGroups,
+  );
+  console.log(
+    "Major SOC match result:",
+    JSON.stringify(majorSocMatch, null, 2),
+  );
+
+  if (majorSocMatch.SOCCode === "Unassigned") {
+    throw new Error(
+      "Unable to assign SOC code, major soc match was unassigned",
+    );
+  }
+
+  if (!jobData.job_id) {
+    throw new Error("Job ID is missing");
+  }
+
+  let result: SOCCodeResult = {
+    jobId: jobData.job_id,
+    jobTitle: jobData.title || "Unknown",
+    majorSOCCode: majorSocMatch.SOCCode,
+    majorSOCTitle: majorSocMatch.SOCTitle,
+    minorSOCCode: majorSocMatch.SOCCode,
+    minorSOCTitle: majorSocMatch.SOCTitle,
+    broadSOCCode: majorSocMatch.SOCCode,
+    broadSOCTitle: majorSocMatch.SOCTitle,
+    detailedSOCCode: majorSocMatch.SOCCode,
+    detailedSOCTitle: majorSocMatch.SOCTitle,
+  };
+
+  // If major SOC code is assigned, try to assign a minor SOC code
+  const minorSocMatch = await matchJobToMinorSOCCode(
+    filteredJobData,
+    majorSocMatch.SOCCode,
+    minorSocGroups,
+  );
+  console.log(
+    "Minor SOC match result:",
+    JSON.stringify(minorSocMatch, null, 2),
+  );
+
+  if (minorSocMatch.SOCCode !== majorSocMatch.SOCCode) {
+    result.minorSOCCode = minorSocMatch.SOCCode;
+    result.minorSOCTitle = minorSocMatch.SOCTitle;
+    result.broadSOCCode = minorSocMatch.SOCCode;
+    result.broadSOCTitle = minorSocMatch.SOCTitle;
+    result.detailedSOCCode = minorSocMatch.SOCCode;
+    result.detailedSOCTitle = minorSocMatch.SOCTitle;
+
+    // If minor SOC code is different, try to assign a broad SOC code
+    const broadSocMatch = await matchJobToBroadSOCCode(
       filteredJobData,
-      majorSocGroups,
+      minorSocMatch.SOCCode,
+      broadSocGroups,
     );
     console.log(
-      "Major SOC match result:",
-      JSON.stringify(majorSocMatch, null, 2),
+      "Broad SOC match result:",
+      JSON.stringify(broadSocMatch, null, 2),
     );
 
-    if (majorSocMatch.SOCCode === "Unassigned") {
-      return c.json(
-        {
-          error: "Unable to assign SOC code",
-          details: majorSocMatch.SOCTitle,
-        },
-        400,
-      );
-    }
+    if (broadSocMatch.SOCCode !== minorSocMatch.SOCCode) {
+      result.broadSOCCode = broadSocMatch.SOCCode;
+      result.broadSOCTitle = broadSocMatch.SOCTitle;
+      result.detailedSOCCode = broadSocMatch.SOCCode;
+      result.detailedSOCTitle = broadSocMatch.SOCTitle;
 
-    let result: SOCCodeResult = {
-      jobId: jobData.job_id,
-      jobTitle: jobData.title || "Unknown",
-      majorSOCCode: majorSocMatch.SOCCode,
-      majorSOCTitle: majorSocMatch.SOCTitle,
-      minorSOCCode: majorSocMatch.SOCCode,
-      minorSOCTitle: majorSocMatch.SOCTitle,
-      broadSOCCode: majorSocMatch.SOCCode,
-      broadSOCTitle: majorSocMatch.SOCTitle,
-      detailedSOCCode: majorSocMatch.SOCCode,
-      detailedSOCTitle: majorSocMatch.SOCTitle,
-    };
-
-    // If major SOC code is assigned, try to assign a minor SOC code
-    const minorSocMatch = await matchJobToMinorSOCCode(
-      filteredJobData,
-      majorSocMatch.SOCCode,
-      minorSocGroups,
-    );
-    console.log(
-      "Minor SOC match result:",
-      JSON.stringify(minorSocMatch, null, 2),
-    );
-
-    if (minorSocMatch.SOCCode !== majorSocMatch.SOCCode) {
-      result.minorSOCCode = minorSocMatch.SOCCode;
-      result.minorSOCTitle = minorSocMatch.SOCTitle;
-      result.broadSOCCode = minorSocMatch.SOCCode;
-      result.broadSOCTitle = minorSocMatch.SOCTitle;
-      result.detailedSOCCode = minorSocMatch.SOCCode;
-      result.detailedSOCTitle = minorSocMatch.SOCTitle;
-
-      // If minor SOC code is different, try to assign a broad SOC code
-      const broadSocMatch = await matchJobToBroadSOCCode(
+      // If broad SOC code is different, try to assign a detailed SOC code
+      const detailedSocMatch = await matchJobToDetailedSOCCode(
         filteredJobData,
-        minorSocMatch.SOCCode,
-        broadSocGroups,
+        broadSocMatch.SOCCode,
+        detailedSocGroups,
       );
       console.log(
-        "Broad SOC match result:",
-        JSON.stringify(broadSocMatch, null, 2),
+        "Detailed SOC match result:",
+        JSON.stringify(detailedSocMatch, null, 2),
       );
 
-      if (broadSocMatch.SOCCode !== minorSocMatch.SOCCode) {
-        result.broadSOCCode = broadSocMatch.SOCCode;
-        result.broadSOCTitle = broadSocMatch.SOCTitle;
-        result.detailedSOCCode = broadSocMatch.SOCCode;
-        result.detailedSOCTitle = broadSocMatch.SOCTitle;
-
-        // If broad SOC code is different, try to assign a detailed SOC code
-        const detailedSocMatch = await matchJobToDetailedSOCCode(
-          filteredJobData,
-          broadSocMatch.SOCCode,
-          detailedSocGroups,
-        );
-        console.log(
-          "Detailed SOC match result:",
-          JSON.stringify(detailedSocMatch, null, 2),
-        );
-
-        if (detailedSocMatch.SOCCode !== broadSocMatch.SOCCode) {
-          result.detailedSOCCode = detailedSocMatch.SOCCode;
-          result.detailedSOCTitle = detailedSocMatch.SOCTitle;
-        }
+      if (detailedSocMatch.SOCCode !== broadSocMatch.SOCCode) {
+        result.detailedSOCCode = detailedSocMatch.SOCCode;
+        result.detailedSOCTitle = detailedSocMatch.SOCTitle;
       }
     }
 
     // Return the final result
-    return c.json(result);
-  } catch (error: any) {
-    console.error("Error in /assign-soc-code:", error);
-    return c.json(
-      {
-        error: "An error occurred while assigning SOC code",
-        details: error.message,
-      },
-      500,
-    );
+    return result;
   }
-});
+
+  throw new Error("Unable to assign SOC code");
+};

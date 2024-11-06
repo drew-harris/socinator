@@ -23,6 +23,7 @@ export default $config({
       url: true,
       handler: "server/src/server.handler",
       link: [redshiftUser, redshiftPassword, redshiftHost, redshiftDatabase],
+      timeout: "80 second",
     });
 
     const site = new sst.aws.StaticSite("Site", {
@@ -42,7 +43,8 @@ export default $config({
     });
 
     return {
-      url: server.url,
+      backendUrl: server.url,
+      site: site.url,
     };
   },
 });

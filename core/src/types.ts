@@ -1,6 +1,6 @@
 export type Inference = (input: {
   metadata: Partial<JobData>;
-  jobId: number;
+  jobId: string;
 }) => Promise<SOCCodeResult>;
 
 export interface SOCCodeResult {

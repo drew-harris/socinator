@@ -5,14 +5,6 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
-    "DB_HOST": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "DB_PASS": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "REDSHIFT_DATABASE": {
       "type": "sst.sst.Secret"
       "value": string
@@ -37,10 +29,6 @@ declare module "sst" {
     "Site": {
       "type": "sst.aws.StaticSite"
       "url": string
-    }
-    "db": {
-      "dbUrl": string
-      "type": "postgresql.index/database.Database"
     }
   }
 }
