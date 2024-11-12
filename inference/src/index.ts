@@ -1,8 +1,8 @@
 // src/index.ts
-import { matchJobToMajorSOCCode } from "./major";
-import { matchJobToMinorSOCCode } from "./minor";
-import { matchJobToBroadSOCCode } from "./broad";
-import { matchJobToDetailedSOCCode } from "./detailed";
+export { matchJobToMajorSOCCode } from "./major";
+export { matchJobToMinorSOCCode } from "./minor";
+export { matchJobToBroadSOCCode } from "./broad";
+export { matchJobToDetailedSOCCode } from "./detailed";
 import { SOCGroup, SOCCodeResult } from "./types";
 import { Inference, type JobData } from "core/types";
 
@@ -10,16 +10,16 @@ import socData from "./soc_defined.json";
 // Store all SOC groups
 const allSocGroups: SOCGroup[] = socData.SOCGroups;
 // Filter SOC groups for each type
-const majorSocGroups: SOCGroup[] = allSocGroups.filter(
+export const majorSocGroups = allSocGroups.filter(
   (group: SOCGroup) => group.SOCGroup === "Major",
 );
-const minorSocGroups: SOCGroup[] = allSocGroups.filter(
+export const minorSocGroups = allSocGroups.filter(
   (group: SOCGroup) => group.SOCGroup === "Minor",
 );
-const broadSocGroups: SOCGroup[] = allSocGroups.filter(
+export const broadSocGroups = allSocGroups.filter(
   (group: SOCGroup) => group.SOCGroup === "Broad",
 );
-const detailedSocGroups: SOCGroup[] = allSocGroups.filter(
+export const detailedSocGroups = allSocGroups.filter(
   (group: SOCGroup) => group.SOCGroup === "Detailed",
 );
 

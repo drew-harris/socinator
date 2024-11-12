@@ -16,8 +16,13 @@ export const ResultModal = (props: ResultModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [progressiveResults, setProgressiveResults] = useState<ProgressiveResults>({});
-  const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'complete'>('idle');
-  const inferMutation = trpc.jobs.getInference.useMutation();
+  const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'complete' | 'error'>('idle');
+
+  const inferMajorMutation = trpc.jobs.inferMajorSOC.useMutation();
+  const inferMinorMutation = trpc.jobs.inferMinorSOC.useMutation();
+  const inferBroadMutation = trpc.jobs.inferBroadSOC.useMutation();
+  const inferDetailedMutation = trpc.jobs.inferDetailedSOC.useMutation();
+
   const inputParams = trpc.jobs.getFullData.useQuery({ jobId: props.jobId });
 
   const openUp = () => {
@@ -30,64 +35,65 @@ export const ResultModal = (props: ResultModalProps) => {
     try {
       setProcessingStatus('processing');
       setProgressiveResults({});
-      
-      const result = await inferMutation.mutateAsync({ jobId: props.jobId });
-      
-      // Update major immediately
-      if (result.majorSOCCode) {
+
+      // Infer Major SOC Code
+      const majorResult = await inferMajorMutation.mutateAsync({ jobId: props.jobId });
+      if (majorResult.SOCCode) {
         setProgressiveResults(prev => ({
           ...prev,
           major: {
-            code: result.majorSOCCode,
-            title: result.majorSOCTitle
-          }
+            code: majorResult.SOCCode,
+            title: majorResult.SOCTitle,
+          },
         }));
       }
 
-      // Update minor after a short delay if different
-      if (result.minorSOCCode && result.minorSOCCode !== result.majorSOCCode) {
-        setTimeout(() => {
-          setProgressiveResults(prev => ({
-            ...prev,
-            minor: {
-              code: result.minorSOCCode!,
-              title: result.minorSOCTitle || ''
-            }
-          }));
-        }, 500);
+      // Infer Minor SOC Code
+      const minorResult = await inferMinorMutation.mutateAsync({
+        jobId: props.jobId,
+        majorSOCCode: majorResult.SOCCode,
+      });
+      if (minorResult.SOCCode) {
+        setProgressiveResults(prev => ({
+          ...prev,
+          minor: {
+            code: minorResult.SOCCode,
+            title: minorResult.SOCTitle,
+          },
+        }));
       }
 
-      // Update broad after delay if different
-      if (result.broadSOCCode && result.broadSOCCode !== result.minorSOCCode) {
-        setTimeout(() => {
-          setProgressiveResults(prev => ({
-            ...prev,
-            broad: {
-              code: result.broadSOCCode!,
-              title: result.broadSOCTitle || ''
-            }
-          }));
-        }, 1000);
+      // Infer Broad SOC Code
+      const broadResult = await inferBroadMutation.mutateAsync({
+        jobId: props.jobId,
+        minorSOCCode: minorResult.SOCCode,
+      });
+      if (broadResult.SOCCode) {
+        setProgressiveResults(prev => ({
+          ...prev,
+          broad: {
+            code: broadResult.SOCCode,
+            title: broadResult.SOCTitle,
+          },
+        }));
       }
 
-      // Update detailed after delay if different
-      if (result.detailedSOCCode && result.detailedSOCCode !== result.broadSOCCode) {
-        setTimeout(() => {
-          setProgressiveResults(prev => ({
-            ...prev,
-            detailed: {
-              code: result.detailedSOCCode!,
-              title: result.detailedSOCTitle || ''
-            }
-          }));
-        }, 1500);
+      // Infer Detailed SOC Code
+      const detailedResult = await inferDetailedMutation.mutateAsync({
+        jobId: props.jobId,
+        broadSOCCode: broadResult.SOCCode,
+      });
+      if (detailedResult.SOCCode) {
+        setProgressiveResults(prev => ({
+          ...prev,
+          detailed: {
+            code: detailedResult.SOCCode,
+            title: detailedResult.SOCTitle,
+          },
+        }));
       }
 
-      // Mark as complete after all updates
-      setTimeout(() => {
-        setProcessingStatus('complete');
-      }, 2000);
-
+      setProcessingStatus('complete');
     } catch (error) {
       console.error("Inference error:", error);
       setProcessingStatus('error');
@@ -95,13 +101,15 @@ export const ResultModal = (props: ResultModalProps) => {
   };
 
   const renderSOCSection = (result?: { code: string; title: string }, label: string) => {
-    if (!result) return (
-      <div className="animate-pulse">
-        <p className="text-sm text-neutral-400">{label}</p>
-        <div className="h-6 bg-neutral-700 rounded w-24 mb-1"></div>
-        <div className="h-4 bg-neutral-700 rounded w-48"></div>
-      </div>
-    );
+    if (!result) {
+      return (
+        <div className="animate-pulse">
+          <p className="text-sm text-neutral-400">{label}</p>
+          <div className="h-6 bg-neutral-700 rounded w-24 mb-1"></div>
+          <div className="h-4 bg-neutral-700 rounded w-48"></div>
+        </div>
+      );
+    }
 
     return (
       <div className="transition-opacity duration-500 opacity-100">
@@ -136,7 +144,7 @@ export const ResultModal = (props: ResultModalProps) => {
           </button>
         </div>
       )}
-      
+
       {isOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 grid place-items-center p-4">
           <div className="bg-neutral-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -167,9 +175,9 @@ export const ResultModal = (props: ResultModalProps) => {
               <button
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                 onClick={runInference}
-                disabled={inferMutation.status === "pending"}
+                disabled={processingStatus === "processing"}
               >
-                {inferMutation.status === "pending" ? (
+                {processingStatus === "processing" ? (
                   <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                 ) : (
                   <svg
@@ -205,7 +213,7 @@ export const ResultModal = (props: ResultModalProps) => {
                   {processingStatus === 'error' && (
                     <div className="p-4 bg-red-950/50 border border-red-900 rounded-lg">
                       <p className="text-red-500">
-                        Error: {inferMutation.error?.message || "An unknown error occurred"}
+                        Error: An error occurred during inference.
                       </p>
                     </div>
                   )}
