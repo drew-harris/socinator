@@ -4,33 +4,110 @@ import { trpc } from "./utils/trpc";
 interface ResultModalProps {
   jobId: string;
 }
+
+interface ProgressiveResults {
+  major?: { code: string; title: string };
+  minor?: { code: string; title: string };
+  broad?: { code: string; title: string };
+  detailed?: { code: string; title: string };
+}
+
 export const ResultModal = (props: ResultModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [progressiveResults, setProgressiveResults] = useState<ProgressiveResults>({});
+  const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'complete'>('idle');
   const inferMutation = trpc.jobs.getInference.useMutation();
   const inputParams = trpc.jobs.getFullData.useQuery({ jobId: props.jobId });
 
-  const openUp = async () => {
+  const openUp = () => {
     setIsOpen(true);
     setDetailsOpen(true);
+    setProgressiveResults({});
   };
 
   const runInference = async () => {
     try {
+      setProcessingStatus('processing');
+      setProgressiveResults({});
+      
       const result = await inferMutation.mutateAsync({ jobId: props.jobId });
-      console.log("Inference result:", result);
+      
+      // Update major immediately
+      if (result.majorSOCCode) {
+        setProgressiveResults(prev => ({
+          ...prev,
+          major: {
+            code: result.majorSOCCode,
+            title: result.majorSOCTitle
+          }
+        }));
+      }
+
+      // Update minor after a short delay if different
+      if (result.minorSOCCode && result.minorSOCCode !== result.majorSOCCode) {
+        setTimeout(() => {
+          setProgressiveResults(prev => ({
+            ...prev,
+            minor: {
+              code: result.minorSOCCode!,
+              title: result.minorSOCTitle || ''
+            }
+          }));
+        }, 500);
+      }
+
+      // Update broad after delay if different
+      if (result.broadSOCCode && result.broadSOCCode !== result.minorSOCCode) {
+        setTimeout(() => {
+          setProgressiveResults(prev => ({
+            ...prev,
+            broad: {
+              code: result.broadSOCCode!,
+              title: result.broadSOCTitle || ''
+            }
+          }));
+        }, 1000);
+      }
+
+      // Update detailed after delay if different
+      if (result.detailedSOCCode && result.detailedSOCCode !== result.broadSOCCode) {
+        setTimeout(() => {
+          setProgressiveResults(prev => ({
+            ...prev,
+            detailed: {
+              code: result.detailedSOCCode!,
+              title: result.detailedSOCTitle || ''
+            }
+          }));
+        }, 1500);
+      }
+
+      // Mark as complete after all updates
+      setTimeout(() => {
+        setProcessingStatus('complete');
+      }, 2000);
+
     } catch (error) {
       console.error("Inference error:", error);
+      setProcessingStatus('error');
     }
   };
 
-  const renderSOCSection = (code?: string, title?: string, label: string) => {
-    if (!code) return null;
-    return (
-      <div>
+  const renderSOCSection = (result?: { code: string; title: string }, label: string) => {
+    if (!result) return (
+      <div className="animate-pulse">
         <p className="text-sm text-neutral-400">{label}</p>
-        <p className="text-white">{code}</p>
-        <p className="text-sm text-neutral-300">{title}</p>
+        <div className="h-6 bg-neutral-700 rounded w-24 mb-1"></div>
+        <div className="h-4 bg-neutral-700 rounded w-48"></div>
+      </div>
+    );
+
+    return (
+      <div className="transition-opacity duration-500 opacity-100">
+        <p className="text-sm text-neutral-400">{label}</p>
+        <p className="text-white">{result.code}</p>
+        <p className="text-sm text-neutral-300">{result.title}</p>
       </div>
     );
   };
@@ -118,57 +195,42 @@ export const ResultModal = (props: ResultModalProps) => {
 
               <div className="mt-4">
                 <div className="space-y-4">
-                  {inferMutation.status === "pending" && (
+                  {processingStatus === 'processing' && (
                     <div className="flex items-center gap-2 text-neutral-400">
                       <div className="animate-spin h-4 w-4 border-2 border-neutral-400 border-t-transparent rounded-full" />
                       <p>Running inference...</p>
                     </div>
                   )}
-                  
-                  {inferMutation.status === "error" && (
+
+                  {processingStatus === 'error' && (
                     <div className="p-4 bg-red-950/50 border border-red-900 rounded-lg">
                       <p className="text-red-500">
                         Error: {inferMutation.error?.message || "An unknown error occurred"}
                       </p>
                     </div>
                   )}
-                  
-                  {inferMutation.status === "success" && inferMutation.data && (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-green-950/50 border border-green-900 rounded-lg">
-                        <p className="text-green-500">Inference completed successfully!</p>
-                      </div>
-                      
-                      <div className="bg-neutral-900 rounded-lg p-4">
-                        <h3 className="text-lg font-medium text-white mb-4">SOC Code Results</h3>
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-4">
-                            {renderSOCSection(
-                              inferMutation.data.majorSOCCode,
-                              inferMutation.data.majorSOCTitle,
-                              "Major SOC"
-                            )}
-                            {renderSOCSection(
-                              inferMutation.data.minorSOCCode,
-                              inferMutation.data.minorSOCTitle,
-                              "Minor SOC"
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            {renderSOCSection(
-                              inferMutation.data.broadSOCCode,
-                              inferMutation.data.broadSOCTitle,
-                              "Broad SOC"
-                            )}
-                            {renderSOCSection(
-                              inferMutation.data.detailedSOCCode,
-                              inferMutation.data.detailedSOCTitle,
-                              "Detailed SOC"
-                            )}
-                          </div>
+
+                  {(processingStatus === 'processing' || processingStatus === 'complete') && (
+                    <div className="bg-neutral-900 rounded-lg p-4">
+                      <h3 className="text-lg font-medium text-white mb-4">SOC Code Results</h3>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          {renderSOCSection(progressiveResults.major, "Major SOC")}
+                          {renderSOCSection(progressiveResults.minor, "Minor SOC")}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          {renderSOCSection(progressiveResults.broad, "Broad SOC")}
+                          {renderSOCSection(progressiveResults.detailed, "Detailed SOC")}
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {processingStatus === 'complete' && (
+                    <div className="p-4 bg-green-950/50 border border-green-900 rounded-lg">
+                      <p className="text-green-500">
+                        Inference completed successfully!
+                      </p>
                     </div>
                   )}
                 </div>
