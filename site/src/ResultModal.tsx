@@ -6,11 +6,13 @@ interface ResultModalProps {
 }
 export const ResultModal = (props: ResultModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const inferMutation = trpc.jobs.getInference.useMutation();
   const inputParams = trpc.jobs.getFullData.useQuery({ jobId: props.jobId });
 
   const openUp = async () => {
     setIsOpen(true);
+    setDetailsOpen(true);
   };
 
   const runInference = async () => {
@@ -109,7 +111,7 @@ export const ResultModal = (props: ResultModalProps) => {
                 Run Inference on {props.jobId}
               </button>
 
-              <details>
+              <details open={detailsOpen}>
                 <summary>Job Data</summary>
                 <pre>{JSON.stringify(inputParams.data, null, 4)}</pre>
               </details>
