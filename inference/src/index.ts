@@ -102,62 +102,78 @@ export const inference: Inference = async ({ metadata, jobId }) => {
     detailedSOCTitle: majorSocMatch.SOCTitle,
   };
 
-  // If major SOC code is assigned, try to assign a minor SOC code
-  const minorSocMatch = await matchJobToMinorSOCCode(
-    filteredJobData,
-    majorSocMatch.SOCCode,
-    minorSocGroups,
-  );
-  console.log(
-    "Minor SOC match result:",
-    JSON.stringify(minorSocMatch, null, 2),
-  );
-
-  if (minorSocMatch.SOCCode !== majorSocMatch.SOCCode) {
-    result.minorSOCCode = minorSocMatch.SOCCode;
-    result.minorSOCTitle = minorSocMatch.SOCTitle;
-    result.broadSOCCode = minorSocMatch.SOCCode;
-    result.broadSOCTitle = minorSocMatch.SOCTitle;
-    result.detailedSOCCode = minorSocMatch.SOCCode;
-    result.detailedSOCTitle = minorSocMatch.SOCTitle;
-
-    // If minor SOC code is different, try to assign a broad SOC code
-    const broadSocMatch = await matchJobToBroadSOCCode(
+  try {
+    // If major SOC code is assigned, try to assign a minor SOC code
+    const minorSocMatch = await matchJobToMinorSOCCode(
       filteredJobData,
-      minorSocMatch.SOCCode,
-      broadSocGroups,
+      majorSocMatch.SOCCode,
+      minorSocGroups,
     );
     console.log(
-      "Broad SOC match result:",
-      JSON.stringify(broadSocMatch, null, 2),
+      "Minor SOC match result:",
+      JSON.stringify(minorSocMatch, null, 2),
     );
 
-    if (broadSocMatch.SOCCode !== minorSocMatch.SOCCode) {
-      result.broadSOCCode = broadSocMatch.SOCCode;
-      result.broadSOCTitle = broadSocMatch.SOCTitle;
-      result.detailedSOCCode = broadSocMatch.SOCCode;
-      result.detailedSOCTitle = broadSocMatch.SOCTitle;
+    // Update result with minor SOC code if different from major
+    if (minorSocMatch.SOCCode !== majorSocMatch.SOCCode) {
+      result.minorSOCCode = minorSocMatch.SOCCode;
+      result.minorSOCTitle = minorSocMatch.SOCTitle;
+      result.broadSOCCode = minorSocMatch.SOCCode;
+      result.broadSOCTitle = minorSocMatch.SOCTitle;
+      result.detailedSOCCode = minorSocMatch.SOCCode;
+      result.detailedSOCTitle = minorSocMatch.SOCTitle;
 
-      // If broad SOC code is different, try to assign a detailed SOC code
-      const detailedSocMatch = await matchJobToDetailedSOCCode(
-        filteredJobData,
-        broadSocMatch.SOCCode,
-        detailedSocGroups,
-      );
-      console.log(
-        "Detailed SOC match result:",
-        JSON.stringify(detailedSocMatch, null, 2),
-      );
+      try {
+        // If minor SOC code is different, try to assign a broad SOC code
+        const broadSocMatch = await matchJobToBroadSOCCode(
+          filteredJobData,
+          minorSocMatch.SOCCode,
+          broadSocGroups,
+        );
+        console.log(
+          "Broad SOC match result:",
+          JSON.stringify(broadSocMatch, null, 2),
+        );
 
-      if (detailedSocMatch.SOCCode !== broadSocMatch.SOCCode) {
-        result.detailedSOCCode = detailedSocMatch.SOCCode;
-        result.detailedSOCTitle = detailedSocMatch.SOCTitle;
+        // Update result with broad SOC code if different from minor
+        if (broadSocMatch.SOCCode !== minorSocMatch.SOCCode) {
+          result.broadSOCCode = broadSocMatch.SOCCode;
+          result.broadSOCTitle = broadSocMatch.SOCTitle;
+          result.detailedSOCCode = broadSocMatch.SOCCode;
+          result.detailedSOCTitle = broadSocMatch.SOCTitle;
+
+          try {
+            // If broad SOC code is different, try to assign a detailed SOC code
+            const detailedSocMatch = await matchJobToDetailedSOCCode(
+              filteredJobData,
+              broadSocMatch.SOCCode,
+              detailedSocGroups,
+            );
+            console.log(
+              "Detailed SOC match result:",
+              JSON.stringify(detailedSocMatch, null, 2),
+            );
+
+            // Update result with detailed SOC code if different from broad
+            if (detailedSocMatch.SOCCode !== broadSocMatch.SOCCode) {
+              result.detailedSOCCode = detailedSocMatch.SOCCode;
+              result.detailedSOCTitle = detailedSocMatch.SOCTitle;
+            }
+          } catch (error) {
+            console.error("Error in detailed SOC code matching:", error);
+            // Continue with existing broad SOC code
+          }
+        }
+      } catch (error) {
+        console.error("Error in broad SOC code matching:", error);
+        // Continue with existing minor SOC code
       }
     }
-
-    // Return the final result
-    return result;
+  } catch (error) {
+    console.error("Error in minor SOC code matching:", error);
+    // Continue with existing major SOC code
   }
 
-  throw new Error("Unable to assign SOC code");
+  // Always return a result, even if only major SOC code is assigned
+  return result;
 };
