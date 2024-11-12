@@ -18,29 +18,67 @@ export const Homepage = () => {
   const testQuery = trpc.jobs.getSample.useQuery({ offset, limit });
 
   return (
-    <div className="p-4">
-      <input
-        className="text-black placeholder:text-neutral-700 p-2"
-        placeholder="Offset!"
-        min={0}
-        max={10000}
-        type="number"
-        value={offset}
-        onChange={(e) => setOffset(parseInt(e.target.value))}
-      />
-      <input
-        className="text-black placeholder:text-neutral-700 p-2"
-        placeholder="Limit!"
-        min={0}
-        max={10000}
-        type="number"
-        value={limit}
-        onChange={(e) => setLimit(parseInt(e.target.value))}
-      />
-      <div className="h-10"></div>
+    <div className="p-8 max-w-7xl mx-auto">
+      <div className="mb-8 space-y-4">
+        <h1 className="text-3xl font-bold text-white mb-6">Job Sample Browser</h1>
+        <div className="flex gap-4 flex-wrap">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="offset" className="text-sm text-neutral-300">
+              Offset
+            </label>
+            <input
+              id="offset"
+              className="bg-neutral-800 border border-neutral-600 rounded-lg px-4 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="Enter offset..."
+              min={0}
+              max={10000}
+              type="number"
+              value={offset}
+              onChange={(e) => setOffset(parseInt(e.target.value))}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="limit" className="text-sm text-neutral-300">
+              Limit
+            </label>
+            <input
+              id="limit"
+              className="bg-neutral-800 border border-neutral-600 rounded-lg px-4 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="Enter limit..."
+              min={0}
+              max={10000}
+              type="number"
+              value={limit}
+              onChange={(e) => setLimit(parseInt(e.target.value))}
+            />
+          </div>
+        </div>
+      </div>
+
       {testQuery.isLoading && (
-        <div className="flex justify-center">
-          <div className="animate-spin">Loading...</div>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin text-blue-500">
+            <svg
+              className="w-8 h-8"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          </div>
         </div>
       )}
       {testQuery.data && <JobsTable data={testQuery.data} />}
