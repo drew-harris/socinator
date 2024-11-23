@@ -6,7 +6,8 @@
     "server",
     "site",
     "core",
-    "inference"
+    "inference",
+    "scripts"
   ],
   "scripts": {
     "db:push": "bun run --filter='core' db push"
@@ -19,6 +20,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "sst": "3.1.73"
+    "sst": "3.3.27"
   }
 }

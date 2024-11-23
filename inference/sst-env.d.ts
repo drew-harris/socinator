@@ -6,6 +6,10 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
+    "CAM_DB_URI": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "REDSHIFT_DATABASE": {
       "type": "sst.sst.Secret"
       "value": string
@@ -30,6 +34,14 @@ declare module "sst" {
     "Site": {
       "type": "sst.aws.StaticSite"
       "url": string
+    }
+    "TYPESENSE_HOST": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "TYPESENSE_KEY": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
   }
 }

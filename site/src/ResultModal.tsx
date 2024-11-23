@@ -15,8 +15,11 @@ interface ProgressiveResults {
 export const ResultModal = (props: ResultModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [progressiveResults, setProgressiveResults] = useState<ProgressiveResults>({});
-  const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'complete' | 'error'>('idle');
+  const [progressiveResults, setProgressiveResults] =
+    useState<ProgressiveResults>({});
+  const [processingStatus, setProcessingStatus] = useState<
+    "idle" | "processing" | "complete" | "error"
+  >("idle");
 
   const inferMajorMutation = trpc.jobs.inferMajorSOC.useMutation();
   const inferMinorMutation = trpc.jobs.inferMinorSOC.useMutation();
@@ -33,13 +36,15 @@ export const ResultModal = (props: ResultModalProps) => {
 
   const runInference = async () => {
     try {
-      setProcessingStatus('processing');
+      setProcessingStatus("processing");
       setProgressiveResults({});
 
       // Infer Major SOC Code
-      const majorResult = await inferMajorMutation.mutateAsync({ jobId: props.jobId });
+      const majorResult = await inferMajorMutation.mutateAsync({
+        jobId: props.jobId,
+      });
       if (majorResult.SOCCode) {
-        setProgressiveResults(prev => ({
+        setProgressiveResults((prev) => ({
           ...prev,
           major: {
             code: majorResult.SOCCode,
@@ -54,7 +59,7 @@ export const ResultModal = (props: ResultModalProps) => {
         majorSOCCode: majorResult.SOCCode,
       });
       if (minorResult.SOCCode) {
-        setProgressiveResults(prev => ({
+        setProgressiveResults((prev) => ({
           ...prev,
           minor: {
             code: minorResult.SOCCode,
@@ -69,7 +74,7 @@ export const ResultModal = (props: ResultModalProps) => {
         minorSOCCode: minorResult.SOCCode,
       });
       if (broadResult.SOCCode) {
-        setProgressiveResults(prev => ({
+        setProgressiveResults((prev) => ({
           ...prev,
           broad: {
             code: broadResult.SOCCode,
@@ -84,7 +89,7 @@ export const ResultModal = (props: ResultModalProps) => {
         broadSOCCode: broadResult.SOCCode,
       });
       if (detailedResult.SOCCode) {
-        setProgressiveResults(prev => ({
+        setProgressiveResults((prev) => ({
           ...prev,
           detailed: {
             code: detailedResult.SOCCode,
@@ -93,14 +98,17 @@ export const ResultModal = (props: ResultModalProps) => {
         }));
       }
 
-      setProcessingStatus('complete');
+      setProcessingStatus("complete");
     } catch (error) {
       console.error("Inference error:", error);
-      setProcessingStatus('error');
+      setProcessingStatus("error");
     }
   };
 
-  const renderSOCSection = (result?: { code: string; title: string }, label: string) => {
+  const renderSOCSection = (
+    label: string,
+    result?: { code: string; title: string },
+  ) => {
     if (!result) {
       return (
         <div className="animate-pulse">
@@ -150,7 +158,9 @@ export const ResultModal = (props: ResultModalProps) => {
           <div className="bg-neutral-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white">Inference Result</h2>
+                <h2 className="text-2xl font-bold text-white">
+                  Inference Result
+                </h2>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="text-neutral-400 hover:text-white transition-colors"
@@ -203,14 +213,14 @@ export const ResultModal = (props: ResultModalProps) => {
 
               <div className="mt-4">
                 <div className="space-y-4">
-                  {processingStatus === 'processing' && (
+                  {processingStatus === "processing" && (
                     <div className="flex items-center gap-2 text-neutral-400">
                       <div className="animate-spin h-4 w-4 border-2 border-neutral-400 border-t-transparent rounded-full" />
                       <p>Running inference...</p>
                     </div>
                   )}
 
-                  {processingStatus === 'error' && (
+                  {processingStatus === "error" && (
                     <div className="p-4 bg-red-950/50 border border-red-900 rounded-lg">
                       <p className="text-red-500">
                         Error: An error occurred during inference.
@@ -218,23 +228,38 @@ export const ResultModal = (props: ResultModalProps) => {
                     </div>
                   )}
 
-                  {(processingStatus === 'processing' || processingStatus === 'complete') && (
+                  {(processingStatus === "processing" ||
+                    processingStatus === "complete") && (
                     <div className="bg-neutral-900 rounded-lg p-4">
-                      <h3 className="text-lg font-medium text-white mb-4">SOC Code Results</h3>
+                      <h3 className="text-lg font-medium text-white mb-4">
+                        SOC Code Results
+                      </h3>
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-4">
-                          {renderSOCSection(progressiveResults.major, "Major SOC")}
-                          {renderSOCSection(progressiveResults.minor, "Minor SOC")}
+                          {renderSOCSection(
+                            "Major SOC",
+                            progressiveResults.major,
+                          )}
+                          {renderSOCSection(
+                            "Minor SOC",
+                            progressiveResults.minor,
+                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                          {renderSOCSection(progressiveResults.broad, "Broad SOC")}
-                          {renderSOCSection(progressiveResults.detailed, "Detailed SOC")}
+                          {renderSOCSection(
+                            "Broad SOC",
+                            progressiveResults.broad,
+                          )}
+                          {renderSOCSection(
+                            "Detailed SOC",
+                            progressiveResults.detailed,
+                          )}
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {processingStatus === 'complete' && (
+                  {processingStatus === "complete" && (
                     <div className="p-4 bg-green-950/50 border border-green-900 rounded-lg">
                       <p className="text-green-500">
                         Inference completed successfully!

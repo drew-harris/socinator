@@ -1,0 +1,17 @@
+{
+  "name": "scripts",
+  "module": "index.ts",
+  "type": "module",
+  "dependencies": {
+    "core": "workspace:",
+    "inference": "workspace:",
+    "postgres": "^3.4.5",
+    "typesense": "^1.8.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

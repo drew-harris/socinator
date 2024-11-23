@@ -7,6 +7,10 @@ import { SOCGroup, SOCCodeResult } from "./types";
 import { Inference, type JobData } from "core/types";
 
 import socData from "./soc_defined.json";
+import { matchJobToMajorSOCCode } from "./major";
+import { matchJobToMinorSOCCode } from "./minor";
+import { matchJobToBroadSOCCode } from "./broad";
+import { matchJobToDetailedSOCCode } from "./detailed";
 // Store all SOC groups
 const allSocGroups: SOCGroup[] = socData.SOCGroups;
 // Filter SOC groups for each type
@@ -61,7 +65,7 @@ function filterJobData(jobData: Partial<JobData>): Partial<JobData> {
   return filteredData;
 }
 
-export const inference: Inference = async ({ metadata, jobId }) => {
+export const inference: Inference = async ({ metadata }) => {
   const jobData = metadata;
   console.log("Job data:", JSON.stringify(jobData, null, 2));
 
@@ -177,3 +181,4 @@ export const inference: Inference = async ({ metadata, jobId }) => {
   // Always return a result, even if only major SOC code is assigned
   return result;
 };
+
