@@ -26,7 +26,15 @@ export default $config({
     const server = new sst.aws.Function("Server", {
       url: true,
       handler: "server/src/server.handler",
-      link: [redshiftUser, redshiftPassword, redshiftHost, redshiftDatabase],
+      link: [
+        redshiftUser,
+        redshiftPassword,
+        redshiftHost,
+        redshiftDatabase,
+        camDbUri,
+        typesenseHost,
+        typesenseKey,
+      ],
       timeout: "80 second",
     });
 

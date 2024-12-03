@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { redshift } from "../redshift";
+import { db } from "../redshift";
 
 export namespace Job {
   export const Info = z
@@ -19,11 +19,10 @@ export namespace Job {
 
   export type Info = z.infer<typeof Info>;
 
-  export const TABLE = "directaccess_db.production.greenwich_role_mapping";
+  export const TABLE = "job_predictions";
 
   export const getSampleJobs = async (offset: number = 0, limit = 5) => {
-    const rows = await redshift.validatedQuery(
-      `SELECT 
+    const rows = await db`SELECT 
         job_id as "JOB_ID",
         COALESCE(role_primary, role_extended, soc6d_title, 'No Role') as "ROLE_PRIMARY",
         COALESCE(job_family, '') as "JOB_FAMILY",
@@ -32,49 +31,37 @@ export namespace Job {
         COALESCE(soc6d, '') as "SOC6D",
         COALESCE(soc6d_title, '') as "SOC6D_TITLE",
         COALESCE(seniority, '') as "SENIORITY",
-        COALESCE(modify_timestamp::text, '') as "MODIFY_TIMESTAMP",
         COALESCE(role_extended, '') as "ROLE_EXTENDED"
-      FROM ${TABLE} 
+      FROM job_predictions
       WHERE soc6d IS NOT NULL 
-      LIMIT $1 OFFSET $2`,
-      Info,
-      [limit, offset],
-    );
+      LIMIT ${limit} OFFSET ${offset}`.execute();
 
     return rows;
   };
 
   export const getJobDetails = async (id: string) => {
-    const result = await redshift.query(
-      `SELECT * FROM directaccess_db.production.greenwich_master WHERE job_id = $1`,
-      [id],
-    );
+    const result =
+      await db`SELECT * FROM job_predictions WHERE job_id = ${id}`.execute();
     return result;
   };
 
   export async function getFullJobData(jobId: string): Promise<any> {
     const queries = [
-      `SELECT * FROM directaccess_db.production.greenwich_master WHERE job_id = '${jobId}'`,
-      `SELECT title FROM directaccess_db.production.greenwich_titles WHERE job_id = '${jobId}'`,
-      `SELECT * FROM directaccess_db.production.greenwich_role_mapping WHERE job_id = '${jobId}'`,
-      `SELECT job_summary FROM directaccess_db.production.greenwich_fulltext WHERE job_id = '${jobId}'`,
-      `SELECT role FROM directaccess_db.production.greenwich_role WHERE job_id = '${jobId}'`,
-      `SELECT "tag" FROM directaccess_db.production.greenwich_tags WHERE job_id = '${jobId}'`,
+      `SELECT * FROM job_predictions WHERE job_id = '${jobId}'`,
+      // `SELECT title FROM job_predictions WHERE job_id = '${jobId}'`,
+      // `SELECT * FROM job_predictions WHERE job_id = '${jobId}'`,
+      // `SELECT role FROM job_predictions WHERE job_id = '${jobId}'`,
+      // `SELECT "tag" FROM job_predictions WHERE job_id = '${jobId}'`,
     ];
 
     try {
       const results = await Promise.all(
-        queries.map((query) => redshift.query(query)),
+        queries.map((query) => db.unsafe(query).execute()),
       );
       const [master, titles, roleMapping, fulltext, roles, tags] = results;
 
       return {
         ...master[0],
-        title: titles[0]?.title,
-        ...roleMapping[0],
-        job_summary: fulltext[0]?.job_summary,
-        roles: roles.map((r) => r.role),
-        tags: tags.map((t) => t.tag),
       };
     } catch (error) {
       console.error("Error fetching job data:", error);
