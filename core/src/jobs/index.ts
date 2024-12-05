@@ -31,7 +31,7 @@ export namespace Job {
         COALESCE(soc6d, '') as "SOC6D",
         COALESCE(soc6d_title, '') as "SOC6D_TITLE",
         COALESCE(seniority, '') as "SENIORITY",
-        COALESCE(role_extended, '') as "ROLE_EXTENDED"
+        COALESCE(title, '') as "ROLE_PRIMARY"
       FROM job_predictions
       WHERE soc6d IS NOT NULL 
       LIMIT ${limit} OFFSET ${offset}`.execute();

@@ -20,7 +20,9 @@ export const Homepage = () => {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8 space-y-4">
-        <h1 className="text-3xl font-bold text-white mb-6">Job Sample Browser</h1>
+        <h1 className="text-3xl font-bold text-white mb-6">
+          Job Sample Browser
+        </h1>
         <div className="flex gap-4 flex-wrap">
           <div className="flex flex-col gap-2">
             <label htmlFor="offset" className="text-sm text-neutral-300">
