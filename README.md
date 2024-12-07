@@ -16,6 +16,11 @@ For fulltext search you also need to have a running typesense container somewher
 
 For the fulltext search, thats all in the scripts folder currently. 
 
+
+# Very important!!!!!!!
+Theres also another database of previous things we've inferenced. its called cam db in the code. 
+Theres a postgres dump of it available at https://files.drewh.net/api/public/dl/pPsgPD8Y/camdb.sql
+
 lowkey just call me if you need help: 9728492232
 
 Good luck - Drew Harris
